@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculador fotovoltaico</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1f40">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Solar FV">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/icon-512.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f5f7;--panel:#fff;--ink:#16202a;--muted:#5d6b78;--line:#dde3e8;--accent:#1f5eff;--accent-ink:#fff;
+--c1:#1f9d55;--c1bg:#e6f6ec;--c2:#d98a00;--c2bg:#fff3d9;--c3:#d6342c;--c3bg:#fde8e6;--off:#eef1f4;--sun:#f5b400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161c;--panel:#1a232c;--ink:#e8eef3;--muted:#93a2b0;--line:#2b3743;--accent:#5b8cff;--accent-ink:#0b1220;--c1:#3ccf7a;--c1bg:#14301f;--c2:#ffb52e;--c2bg:#3a2b0a;--c3:#ff6a5e;--c3bg:#3d1714;--off:#212c36}}
+:root[data-theme="dark"]{--bg:#10161c;--panel:#1a232c;--ink:#e8eef3;--muted:#93a2b0;--line:#2b3743;--accent:#5b8cff;--accent-ink:#0b1220;--c1:#3ccf7a;--c1bg:#14301f;--c2:#ffb52e;--c2bg:#3a2b0a;--c3:#ff6a5e;--c3bg:#3d1714;--off:#212c36}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px 48px}
+h1,.big,.name{font-family:"Barlow Condensed","Arial Narrow",sans-serif}
+h1{font-size:2rem;margin:0 0 4px}
+.sub{margin:0 0 20px;color:var(--muted)}
+.banner{background:var(--panel);border:2px solid var(--sun);border-radius:12px;padding:20px;margin-bottom:16px}
+.banner label{font-weight:600;display:block;margin-bottom:8px}
+.bin{display:flex;align-items:center;gap:10px}
+.bin input{flex:1;min-width:0;font:inherit;font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:2.4rem;padding:6px 14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.bsel{width:100%;font:inherit;padding:11px 12px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.bin span{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:2rem;font-weight:700;color:var(--muted)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.cat{border-radius:12px;padding:14px;border:2px solid transparent;background:var(--off);color:var(--muted);opacity:.45;transition:opacity .25s,background .25s,transform .25s}
+.cat .name{font-weight:700;font-size:1.35rem}.cat .rng{font-size:.9rem}
+.cat .dot{width:12px;height:12px;border-radius:50%;background:currentColor;margin-bottom:6px}
+.cat.on{opacity:1;transform:scale(1.03)}
+.cat[data-c="1"].on{background:var(--c1bg);border-color:var(--c1);color:var(--c1)}
+.cat[data-c="2"].on{background:var(--c2bg);border-color:var(--c2);color:var(--c2)}
+.cat[data-c="3"].on{background:var(--c3bg);border-color:var(--c3);color:var(--c3)}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card h2{font-size:.95rem;margin:0 0 6px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.big{font-size:2.3rem;font-weight:700;line-height:1.1}
+.det{color:var(--muted);margin-top:4px;font-size:.95rem}
+.msg{margin:0 0 12px;min-height:1.4em;font-weight:600;color:var(--c3)}
+details{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+summary{cursor:pointer;font-weight:600}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:12px}
+.pg label{display:flex;flex-direction:column;font-size:.9rem;color:var(--muted);gap:4px}
+.pg input,.pg select{font:inherit;padding:9px 10px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;min-width:0}
+.note{color:var(--muted);font-size:.85rem;margin-top:14px}
+@media (max-width:720px){.res{grid-template-columns:1fr}.cat .name{font-size:1.1rem}.cats{gap:8px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>Calculador fotovoltaico</h1>
+<p class="sub">Sistema aislado (off-grid) dimensionado según la categoría de la carga.</p>
+
+<section class="banner">
+  <label for="p">Potencia de la carga</label>
+  <div class="bin"><input id="p" type="number" inputmode="decimal" min="0" step="any" placeholder="0" autofocus><span>W</span></div>
+  <label for="tipo" style="margin-top:14px">Alimentación de la carga</label>
+  <select id="tipo" class="bsel">
+    <option value="ac">Con inversor (carga AC 110 V)</option>
+    <option value="dc">Sin inversor (directo desde el controlador, DC)</option>
+  </select>
+</section>
+
+<div class="cats" id="cats">
+  <div class="cat" data-c="1"><div class="dot"></div><div class="name">Categoría 1</div><div class="rng">0 a 60 W · 12 V</div></div>
+  <div class="cat" data-c="2"><div class="dot"></div><div class="name">Categoría 2</div><div class="rng">&gt;60 a 200 W · 24 V</div></div>
+  <div class="cat" data-c="3"><div class="dot"></div><div class="name">Categoría 3</div><div class="rng">&gt;200 a 500 W · 48 V</div></div>
+</div>
+<p class="msg" id="msg" role="status"></p>
+
+<div class="res" aria-live="polite">
+  <div class="card"><h2>Paneles solares</h2><div class="big" id="r-pan">—</div><div class="det" id="d-pan"></div></div>
+  <div class="card"><h2>Controlador de carga</h2><div class="big" id="r-ctl">—</div><div class="det" id="d-ctl"></div></div>
+  <div class="card"><h2>Baterías</h2><div class="big" id="r-bat">—</div><div class="det" id="d-bat"></div></div>
+  <div class="card"><h2>Inversor / salida</h2><div class="big" id="r-inv">—</div><div class="det" id="d-inv"></div></div>
+</div>
+
+<details>
+  <summary>Parámetros de cálculo (editables)</summary>
+  <div class="pg">
+    <label>Horas de uso al día<input id="h" type="number" min="0.1" step="any" value="6"></label>
+    <label>Horas sol pico (HSP)<input id="hsp" type="number" min="1" step="any" value="4.5"></label>
+    <label>Días de autonomía<input id="aut" type="number" min="0.5" step="0.5" value="1"></label>
+    <label>Factor de rendimiento (PR)<input id="pr" type="number" min="0.4" max="1" step="0.01" value="0.75"></label>
+    <label>Batería<select id="bat"><option value="plomo">Plomo-ácido AGM/Gel (DoD 50%)</option><option value="litio">Litio LiFePO4 (DoD 80%)</option></select></label>
+    <label>Voltaje del sistema<select id="vsel"><option value="0">Automático (categoría)</option><option>12</option><option>24</option><option>48</option></select></label>
+    <label>Potencia del panel<select id="psel"><option value="0">Automática (categoría)</option><option>50</option><option>100</option><option>150</option><option>200</option><option>330</option><option>450</option><option>550</option></select></label>
+  </div>
+  <p class="note">Paneles = energía en DC ÷ (HSP × PR). Baterías = energía × autonomía ÷ (DoD × 0,9) ÷ V del sistema. Controlador = Wp totales ÷ V × 1,25. Inversor = carga × 1,25 y eficiencia 90%. Es un cálculo preliminar: verifica tensiones de string (Voc) y la ficha de cada equipo.</p>
+</details>
+</main>
+
+<script>
+const CATS=[{c:1,max:60,V:12,panel:100,ctl:"PWM o MPPT"},{c:2,max:200,V:24,panel:200,ctl:"MPPT"},{c:3,max:500,V:48,panel:330,ctl:"MPPT"}];
+const CTL=[10,20,30,40,50,60,80,100], INV=[150,300,500,600,1000,1500,2000,3000];
+const AH={plomo:[7,12,18,26,33,55,75,100,150,200],litio:[20,50,100,150,200]};
+const $=id=>document.getElementById(id);
+const up=(l,x)=>l.find(v=>v>=x);
+const fmt=(n,d=0)=>n.toLocaleString("es-CO",{maximumFractionDigits:d});
+const ids=["p","h","hsp","aut","pr","tipo","bat","vsel","psel"];
+const out=["r-pan","d-pan","r-ctl","d-ctl","r-bat","d-bat","r-inv","d-inv"];
+
+function limpiar(msg){
+  out.forEach(i=>$(i).textContent=i[0]==="r"?"—":"");
+  document.querySelectorAll(".cat").forEach(e=>e.classList.remove("on"));
+  $("msg").textContent=msg||"";
+}
+
+function calc(){
+  const P=parseFloat($("p").value), h=parseFloat($("h").value), hsp=parseFloat($("hsp").value),
+        aut=parseFloat($("aut").value), pr=parseFloat($("pr").value);
+  if(!(P>0)) return limpiar("");
+  if(![h,hsp,aut,pr].every(v=>v>0)) return limpiar("Revisa los parámetros de cálculo.");
+
+  const cat=CATS.find(c=>P<=c.max)||CATS[2];
+  document.querySelectorAll(".cat").forEach(e=>e.classList.toggle("on",Number(e.dataset.c)===(P<=500?cat.c:0)));
+  $("msg").textContent=P>500?"La carga supera 500 W: se usan los parámetros de la categoría 3 como referencia.":"";
+
+  const ac=$("tipo").value==="ac", lit=$("bat").value==="litio";
+  const V=Number($("vsel").value)||cat.V, pw=Number($("psel").value)||cat.panel;
+  const E=P*h, Edc=ac?E/0.9:E;
+
+  // Paneles
+  const wpReq=Edc/(hsp*pr), nPan=Math.max(1,Math.ceil(wpReq/pw)), wpTot=nPan*pw;
+  $("r-pan").textContent=nPan+" × "+pw+" W";
+  $("d-pan").textContent="Total "+fmt(wpTot)+" Wp (mínimo requerido "+fmt(wpReq)+" Wp) · carga "+fmt(E)+" Wh/día";
+
+  // Controlador
+  const iReq=wpTot/V*1.25, iCtl=up(CTL,iReq);
+  $("r-ctl").textContent=iCtl?iCtl+" A · "+V+" V":">100 A";
+  $("d-ctl").textContent=(iCtl?cat.ctl:"Usa varios controladores en paralelo")+" · corriente de cálculo "+fmt(iReq,1)+" A";
+
+  // Baterías
+  const dod=lit?0.8:0.5, Wh=Edc*aut/(dod*0.9), AhReq=Wh/V, lista=AH[$("bat").value];
+  const ahU=up(lista,AhReq)||lista[lista.length-1];
+  const par=Math.max(1,Math.ceil(AhReq/ahU)), ser=V/12, nBat=ser*par;
+  $("r-bat").textContent=nBat+" × 12 V "+ahU+" Ah";
+  $("d-bat").textContent=ser+" en serie × "+par+" en paralelo · banco "+V+" V / "+(par*ahU)+" Ah ("+fmt(V*par*ahU/1000,2)+" kWh) · "+(lit?"litio":"plomo-ácido");
+
+  // Inversor
+  if(ac){
+    const pi=up(INV,P*1.25);
+    $("r-inv").textContent=(pi?pi:Math.ceil(P*1.25/500)*500)+" W · "+V+" V";
+    $("d-inv").textContent="Salida 110 V AC, onda senoidal pura recomendada · potencia mínima "+fmt(P*1.25)+" W";
+  } else {
+    $("r-inv").textContent="Sin inversor";
+    $("d-inv").textContent="La carga debe ser DC a "+V+" V · corriente "+fmt(P/V,1)+" A · verifica que la salida de carga del controlador la soporte";
+  }
+}
+ids.forEach(i=>{$(i).addEventListener("input",calc);$(i).addEventListener("change",calc)});
+calc();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
